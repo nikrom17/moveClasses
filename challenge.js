@@ -41,26 +41,36 @@ const school = {
   },
 };
 
+const enrollInFav = (student, index, enrolledStudents, coursesCopy) => {
+  if (!(enrolledStudents.includes(student))) {
+    coursesCopy[index].students.push(student);
+  }
+  return coursesCopy;
+}
+
+const dropHatedCourse = (student, index, enrolledStudents, coursesCopy) => { 
+  if ((enrolledStudents.includes(student))) {
+    const updatedStudents = coursesCopy[index].students.filter((value) => value !== student);
+    coursesCopy[index].students = updatedStudents;
+  }
+  return coursesCopy;
+}
+
 const moveStudents = (initialSchool) => {
   
   const students = initialSchool.students;
   const courses = initialSchool.courses;
-  const coursesCopy = initialSchool.courses.slice(0);
+  let coursesCopy = initialSchool.courses.slice(0);
   
   for (let student in students) {
     const favId = students[student].favoriteCourse;
     const hateId = students[student].hatedCourse;
+
     courses.forEach( (course, index ) => {
       if (course.id === favId) {
-        if (!(course.students.includes(student))) {
-          coursesCopy[index].students.push(student);
-        }
-      }
-      if (course.id === hateId) {
-        if ((course.students.includes(student))) {
-          const updatedStudents = coursesCopy[index].students.filter((value) => value !== student);
-          coursesCopy[index].students = updatedStudents;
-        }
+        coursesCopy = enrollInFav(student, index, course.students, coursesCopy);
+      } else if (course.id === hateId) {
+        coursesCopy = dropHatedCourse(student, index, course.students, coursesCopy);
       }
     })
   }
