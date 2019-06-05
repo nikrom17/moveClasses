@@ -41,19 +41,49 @@ const school = {
   },
 };
 
-const enrollInFav = (student, index, enrolledStudents, coursesCopy) => {
-  if (!(enrolledStudents.includes(student))) {
-    coursesCopy[index].students.push(student);
-  }
+//checks and enrolls all students in their favorite course
+const enrollInFav = (courseId, index, favoriteCourses, coursesCopy) => {
+  favoriteCourses[courseId].forEach( (student) => {
+    if (!(coursesCopy[index].students.includes(student))) {
+      coursesCopy[index].students.push(student);
+    }
+  })
   return coursesCopy;
 }
 
-const dropHatedCourse = (student, index, enrolledStudents, coursesCopy) => { 
-  if ((enrolledStudents.includes(student))) {
-    const updatedStudents = coursesCopy[index].students.filter((value) => value !== student);
-    coursesCopy[index].students = updatedStudents;
-  }
+//checks and drops all students from their hated course
+const dropHatedCourse = (courseId, index, hatedCourses, coursesCopy) => {
+  hatedCourses[courseId].forEach( (student) => {
+    if (coursesCopy[index].students.includes(student)) {
+      const updatedStudents = coursesCopy[index].students.filter((value) => value !== student);
+      coursesCopy[index].students = updatedStudents;
+    }
+  })
   return coursesCopy;
+}
+
+//generates an obj of course ids -> array of students fav and hated courses
+const buildFavHateObjs = (students) => {
+  let favoriteCourses = {};
+  let hatedCourses = {};
+
+  for (let student in students) {
+    const favId = students[student].favoriteCourse;
+    const hateId = students[student].hatedCourse;
+
+    if (favId in favoriteCourses) {
+      favoriteCourses[favId].push(student);
+    } else {
+      favoriteCourses[favId] = [student];
+    }
+
+    if (hateId in hatedCourses) {
+      hatedCourses[hateId].push(student);
+    } else {
+      hatedCourses[hateId] = [student];
+    }
+  }
+  return [favoriteCourses, hatedCourses];
 }
 
 const moveStudents = (initialSchool) => {
@@ -62,18 +92,13 @@ const moveStudents = (initialSchool) => {
   const courses = initialSchool.courses;
   let coursesCopy = initialSchool.courses.slice(0);
   
-  for (let student in students) {
-    const favId = students[student].favoriteCourse;
-    const hateId = students[student].hatedCourse;
+  let [favoriteCourses, hatedCourses] = buildFavHateObjs(students);
 
-    courses.forEach( (course, index ) => {
-      if (course.id === favId) {
-        coursesCopy = enrollInFav(student, index, course.students, coursesCopy);
-      } else if (course.id === hateId) {
-        coursesCopy = dropHatedCourse(student, index, course.students, coursesCopy);
-      }
-    })
-  }
+  courses.forEach( (course, index ) => {
+    coursesCopy = enrollInFav(course.id, index, favoriteCourses, coursesCopy);
+    coursesCopy = dropHatedCourse(course.id, index, hatedCourses, coursesCopy);
+  });
+
   return {courses: coursesCopy, students};
 };
 
